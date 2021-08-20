@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button onclick = "getProducts1()">获取商品列表1</button>
+    <button onclick = "getProducts2()">获取商品列表2</button>
+    
+    
+    <script src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.1/axios.js"></script>
+    <script>
+        axios.defaults.baseURL = "http://localhost:4000"
+
+        let cancel //用于保存取消请求的函数
+
+        //添加请求拦截器
+        axios.interceptors.request.use(config => {
+            if(cancel){
+                cancel('强制取消')
+            }
+            //添加cancelToken的配置
+            config.cancelToken = new axios.CancelToken((c) => {
+                cancel = c
+            })
+
+            return config
+        })
+
+        axios.interceptors.response.use( 
+            response => {
+                cancel = null
+                return response
+            },
+
+            error => {
+                if(axios.isCancel(error)){
+                    alert('取消请求错误' + error.message)
+                    // return error
+                }else{
+                    cancel = null
+                    alert('请求出错' + error.message)
+                    // return error
+                }
+
+                return new Promise(() => {})
+            }
+        )
+
+        function getProducts1(){
+            // alert("sjd")
+            axios('/getProducts1')
+            .then(
+                response => {
+                    console.log('111 onResolved', response.data);
+                },
+                error => {
+                    console.log('222 请求出错', error);
+                }
+            )
+        }
+
+        function getProducts2(){
+            axios('/getProducts2')
+            .then(
+                response => {
+                    console.log('111 onResolved', response);
+                },
+                error => {
+                    console.log('222 请求出错', error);
+                }
+            )
+        }
+    </script>
+</body>
+</html>
